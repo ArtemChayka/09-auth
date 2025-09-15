@@ -1,0 +1,21 @@
+.container {
+  display: flex;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  gap: 24px;
+}
+
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background-color: #333;
+  border-radius: 8px;
+  padding: 16px;
+  height: fit-content;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
