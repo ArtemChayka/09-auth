@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/authStore';
-import css from './SignIn.module.css';
+import css from '../sign-in/SignIn.module.css';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
