@@ -1,5 +1,5 @@
 import { apiInstance } from './api';
-import { User } from '@/types/user';
+import { User } from '@/types/users';
 
 export const registerUser = async (credentials: {
   email: string;

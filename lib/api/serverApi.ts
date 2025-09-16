@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import axios from 'axios';
-import { User } from '@/types/user';
+import { User } from '@/types/users';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL + '/api';
 
