@@ -1,18 +1,10 @@
-export interface NoteTag {
-  id: string;
-  name: string;
-}
-
 export interface Note {
   id: string;
   title: string;
   content: string;
-  tags: NoteTag[];
+  tag: NoteTag;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
+export type NoteTag = 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
