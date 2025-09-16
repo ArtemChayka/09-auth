@@ -1,25 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchNoteById, Note } from '../../lib/api';
-import css from './NotePreview.module.css';
+import { fetchNoteById, Note } from '../../../../lib/api';
+import css from './NoteDetails.module.css';
 
-interface NotePreviewProps {
-  noteId: string;
+interface NoteDetailsProps {
+  params: {
+    id: string;
+  };
 }
 
-export default function NotePreview({ noteId }: NotePreviewProps) {
+export default function NoteDetails({ params }: NoteDetailsProps) {
+  const noteId = params.id;
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!noteId) {
-      setError('Note ID is missing.');
-      setLoading(false);
-      return;
-    }
-
     const loadNote = async () => {
       try {
         setLoading(true);
@@ -33,32 +30,34 @@ export default function NotePreview({ noteId }: NotePreviewProps) {
       }
     };
 
-    loadNote();
+    if (noteId) {
+      loadNote();
+    }
   }, [noteId]);
 
   if (loading) {
-    return <div className={css.message}>Loading note...</div>;
+    return <div className={css.message}>Завантаження...</div>;
   }
 
   if (error) {
     return (
       <div className={css.message} style={{ color: 'red' }}>
-        {error}
+        Помилка: {error}
       </div>
     );
   }
 
   if (!note) {
-    return <div className={css.message}>Note not found.</div>;
+    return <div className={css.message}>Примітка не знайдена.</div>;
   }
 
   return (
-    <div className={css.previewContainer}>
+    <div className={css.noteDetailsContainer}>
       <h1 className={css.title}>{note.title}</h1>
       <p className={css.content}>{note.content}</p>
       {note.tags && note.tags.length > 0 && (
         <div className={css.tagsContainer}>
-          {note.tags.map((tag: string) => (
+          {note.tags.map((tag) => (
             <span key={tag} className={css.tag}>
               #{tag}
             </span>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchNoteById, Note } from '../../lib/api';
+import { fetchNoteById, Note } from '../../../../lib/api';
 import css from './NotePreview.module.css';
 
 interface NotePreviewProps {
@@ -37,19 +37,19 @@ export default function NotePreview({ noteId }: NotePreviewProps) {
   }, [noteId]);
 
   if (loading) {
-    return <div className={css.message}>Loading note...</div>;
+    return <div className={css.message}>Завантаження нотатки...</div>;
   }
 
   if (error) {
     return (
       <div className={css.message} style={{ color: 'red' }}>
-        {error}
+        Помилка: {error}
       </div>
     );
   }
 
   if (!note) {
-    return <div className={css.message}>Note not found.</div>;
+    return <div className={css.message}>Нотатка не знайдена.</div>;
   }
 
   return (

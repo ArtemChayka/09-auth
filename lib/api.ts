@@ -1,97 +1,71 @@
-import axios from 'axios';
-import {
-  User,
-  LoginPayload,
-  RegisterPayload,
-  UpdateUserPayload,
-} from '../types/users';
+// Цей файл містить фіктивні дані та логіку API для нотаток.
+// Він імітує реальний бекенд для розробки.
 
-const instance = axios.create({
-  baseURL: 'https://notehub-api.goit.study',
-  withCredentials: true,
-});
+export type NoteTag = {
+  id: string;
+  name: string;
+};
 
-export interface Note {
+export type Note = {
   id: string;
   title: string;
   content: string;
   tags: string[];
-}
-
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
-
-export interface CreateNotePayload {
-  title: string;
-  content: string;
-  tag: Note['tags'];
-}
-
-export const fetchNotes = async ({
-  page = 1,
-  perPage = 12,
-  search = '',
-  tag,
-}: {
-  page?: number;
-  perPage?: number;
-  search?: string;
-  tag?: string;
-}): Promise<FetchNotesResponse> => {
-  const params: Record<string, string | number> = {
-    page,
-    perPage,
-    search,
-  };
-
-  if (tag) {
-    params.tag = tag;
-  }
-
-  const { data } = await instance.get<FetchNotesResponse>('/notes', {
-    params,
-  });
-
-  return data;
 };
 
-export const createNote = async (note: CreateNotePayload): Promise<Note> => {
-  const { data } = await instance.post<Note>('/notes', note);
-  return data;
+// Фіктивні дані, що імітують нотатки з бази даних
+const mockNotes: Note[] = [
+  {
+    id: '1',
+    title: 'Перша зустріч',
+    content: 'Обговорення нових можливостей для проекту та розподіл завдань.',
+    tags: ['зустрічі', 'проект', 'завдання'],
+  },
+  {
+    id: '2',
+    title: 'Ідеї для наступної версії',
+    content:
+      'Задокументувати всі ідеї, які були запропоновані на мозковому штурмі.',
+    tags: ['ідеї', 'проект'],
+  },
+  {
+    id: '3',
+    title: 'План розробки',
+    content:
+      'Створити детальний план розробки на наступні два тижні. Зосередитись на функціоналі користувачів.',
+    tags: ['розробка', 'план', 'проект'],
+  },
+  {
+    id: '4',
+    title: 'Нотатки з конференції',
+    content:
+      'Резюме основних доповідей з конференції по React. Особливо зацікавили нові хуки.',
+    tags: ['конференція', 'навчання', 'react'],
+  },
+  {
+    id: '5',
+    title: 'Прототип дизайну',
+    content:
+      'Створення прототипу дизайну для мобільного додатка. Використання Figma.',
+    tags: ['дизайн', 'проект'],
+  },
+];
+
+// Імітація функції API для отримання всіх тегів.
+export const fetchTags = async (): Promise<NoteTag[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const allTags = mockNotes.flatMap((note) => note.tags);
+  const uniqueTags = Array.from(new Set(allTags));
+
+  return uniqueTags.map((tag) => ({
+    id: tag, // Використання імені тегу як id
+    name: tag,
+  }));
 };
 
-export const deleteNote = async (id: string): Promise<Note> => {
-  const { data } = await instance.delete<Note>(`/notes/${id}`);
-  return data;
-};
-
-export const fetchNoteById = async (id: string): Promise<Note> => {
-  const { data } = await instance.get<Note>(`/notes/${id}`);
-  return data;
-};
-
-export const fetchMe = async (): Promise<User> => {
-  const { data } = await instance.get<User>('/users/me');
-  return data;
-};
-
-export const login = async (payload: LoginPayload): Promise<User> => {
-  const { data } = await instance.post<User>('/auth/login', payload);
-  return data;
-};
-
-export const register = async (payload: RegisterPayload): Promise<User> => {
-  const { data } = await instance.post<User>('/auth/register', payload);
-  return data;
-};
-
-export const logout = async (): Promise<void> => {
-  await instance.post('/auth/logout');
-};
-
-export const updateUser = async (payload: UpdateUserPayload): Promise<User> => {
-  const { data } = await instance.patch<User>('/users/me', payload);
-  return data;
+// Імітація функції API для отримання нотатки за ідентифікатором.
+export const fetchNoteById = async (id: string): Promise<Note | null> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const note = mockNotes.find((note) => note.id === id);
+  return note || null;
 };

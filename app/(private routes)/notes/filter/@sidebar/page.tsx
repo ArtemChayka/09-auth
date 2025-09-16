@@ -1,28 +1,15 @@
-import Link from 'next/link';
-import { NoteTag } from '../../../../../types/note';
-import css from './SidebarNotes.module.css';
+import React from 'react';
+import TagsMenu from '@/components/TagsMenu/TagsMenu';
+import { MOCK_NOTES } from '@/lib/api/api';
 
-const tags: (NoteTag | 'All')[] = [
-  'All',
-  'Todo',
-  'Work',
-  'Personal',
-  'Meeting',
-  'Shopping',
-];
+export default function SidebarPage() {
+  const allTags = MOCK_NOTES.flatMap((note) => note.tags);
 
-export default function SidebarNotes() {
-  return (
-    <div>
-      <ul className={css.menuList}>
-        {tags.map((tag) => (
-          <li key={tag} className={css.menuItem}>
-            <Link href={`/notes/filter/${tag}`} className={css.menuLink}>
-              {tag === 'All' ? 'All notes' : tag}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  const uniqueTagMap = new Map<string, any>();
+  allTags.forEach((tag) => {
+    uniqueTagMap.set(tag.name, tag);
+  });
+  const uniqueTags = Array.from(uniqueTagMap.values());
+
+  return <TagsMenu tags={uniqueTags} />;
 }

@@ -1,26 +1,17 @@
-import { cookies } from 'next/headers';
-import axios from 'axios';
-import { User } from '@/types/users';
+import { Note } from '@/types/note';
+import { MOCK_NOTES } from './api';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL + '/api';
 
-const createServerInstance = async () => {
-  const cookieStore = await cookies();
-
-  return axios.create({
-    baseURL,
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
+export const fetchAllNotes = async (): Promise<Note[]> => {
+  return MOCK_NOTES;
 };
 
-export const getServerUser = async (): Promise<User | null> => {
-  try {
-    const instance = await createServerInstance();
-    const { data } = await instance.get('/auth/session');
-    return data;
-  } catch {
-    return null;
-  }
+export const fetchNoteDetails = async (
+  id: string,
+): Promise<Note | undefined> => {
+  return MOCK_NOTES.find((note) => note.id === id);
+};
+
+export const fetchNoteById = async (id: string): Promise<Note | undefined> => {
+  return MOCK_NOTES.find((note) => note.id === id);
 };
