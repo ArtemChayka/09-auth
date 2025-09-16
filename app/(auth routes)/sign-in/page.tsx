@@ -2,70 +2,63 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginUser } from '@/lib/api/clientApi';
-import css from './SignIn.module.css';
+import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/authStore';
+import css from './SignIn.module.css';
 
-export default function SignIn() {
-  const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
-
+export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { login } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
     try {
-      const user = await loginUser({ email, password });
-      setUser(user);
-      router.push('/profile');
-    } catch (e: unknown) {
-      setError('Невірний email або пароль');
+      await login({ email, password });
+      router.push('/notes/filter/All');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Login failed');
+      }
     }
   };
 
   return (
-    <main className={css.mainContent}>
-      <form className={css.form} onSubmit={handleSubmit}>
-        <h1 className={css.formTitle}>Sign in</h1>
-
-        <div className={css.formGroup}>
-          <label htmlFor="email">Email</label>
+    <div className={css.container}>
+      <div className={css.formWrapper}>
+        <h1 className={css.title}>Вхід</h1>
+        <form className={css.form} onSubmit={handleLogin}>
           <input
-            id="email"
-            type="email"
-            name="email"
             className={css.input}
-            required
+            type="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className={css.formGroup}>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            className={css.input}
             required
+          />
+          <input
+            className={css.input}
+            type="password"
+            placeholder="Пароль"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
-        </div>
-
-        <div className={css.actions}>
-          <button type="submit" className={css.submitButton}>
-            Log in
+          <button className={css.button} type="submit">
+            Увійти
           </button>
-        </div>
-
+        </form>
         {error && <p className={css.error}>{error}</p>}
-      </form>
-    </main>
+        <Link className={css.link} href="/sign-up">
+          Не маєте облікового запису? Зареєструватися
+        </Link>
+      </div>
+    </div>
   );
 }
