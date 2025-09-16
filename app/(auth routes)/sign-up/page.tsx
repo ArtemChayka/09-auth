@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginUser } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
-import css from './SignIn.module.css';
+import css from '../sign-in/SignIn.module.css';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
