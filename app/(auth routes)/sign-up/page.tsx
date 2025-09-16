@@ -2,91 +2,63 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginUser } from '@/lib/api/clientApi';
+import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/authStore';
-import css from '../sign-in/SignIn.module.css';
+import css from './SignUp.module.css';
 
-export default function SignIn() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export default function SignUpPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
+  const { register } = useAuthStore();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Очищаємо помилку при введенні
-    if (error) setError('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      const user = await loginUser(formData);
-      setUser(user);
-      router.push('/profile');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
-    } finally {
-      setIsLoading(false);
+      await register({ email, password, username: 'default_username' });
+      router.push('/notes/filter/All');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Registration failed');
+      }
     }
   };
 
   return (
-    <main className={css.mainContent}>
-      <form className={css.form} onSubmit={handleSubmit}>
-        <h1 className={css.formTitle}>Sign in</h1>
-
-        <div className={css.formGroup}>
-          <label htmlFor="email">Email</label>
+    <div className={css.container}>
+      <div className={css.formWrapper}>
+        <h1 className={css.title}>Реєстрація</h1>
+        <form className={css.form} onSubmit={handleRegister}>
           <input
-            id="email"
+            className={css.input}
             type="email"
-            name="email"
-            className={css.input}
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isLoading}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-
-        <div className={css.formGroup}>
-          <label htmlFor="password">Password</label>
           <input
-            id="password"
-            type="password"
-            name="password"
             className={css.input}
-            value={formData.password}
-            onChange={handleChange}
-            disabled={isLoading}
+            type="password"
+            placeholder="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </div>
-
-        <div className={css.actions}>
-          <button
-            type="submit"
-            className={css.submitButton}
-            disabled={isLoading || !formData.email || !formData.password}
-          >
-            {isLoading ? 'Logging in...' : 'Log in'}
+          <button className={css.button} type="submit">
+            Зареєструватися
           </button>
-        </div>
-
+        </form>
         {error && <p className={css.error}>{error}</p>}
-      </form>
-    </main>
+        <Link className={css.link} href="/sign-in">
+          Вже маєте обліковий запис? Увійти
+        </Link>
+      </div>
+    </div>
   );
 }

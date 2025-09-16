@@ -1,27 +1,16 @@
 import axios from 'axios';
-import { Note, NoteTag } from '../types/note';
-
-const BASE_URL = 'https://notehub-public.goit.study/api';
-const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-
-if (!TOKEN) {
-  console.error(
-    'NEXT_PUBLIC_NOTEHUB_TOKEN is not defined. Please check your .env file.',
-  );
-}
+import { User, LoginPayload, RegisterPayload } from '../types/users';
 
 const instance = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    Authorization: `Bearer ${TOKEN}`,
-  },
+  baseURL: 'https://notehub-api.goit.study',
+  withCredentials: true,
 });
 
-export interface FetchNotesParams {
-  page?: number;
-  perPage?: number;
-  search?: string;
-  tag?: NoteTag;
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
 }
 
 export interface FetchNotesResponse {
@@ -32,7 +21,7 @@ export interface FetchNotesResponse {
 export interface CreateNotePayload {
   title: string;
   content: string;
-  tag: Note['tag'];
+  tag: Note['tags'];
 }
 
 export const fetchNotes = async ({
@@ -40,7 +29,12 @@ export const fetchNotes = async ({
   perPage = 12,
   search = '',
   tag,
-}: FetchNotesParams): Promise<FetchNotesResponse> => {
+}: {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  tag?: string;
+}): Promise<FetchNotesResponse> => {
   const params: Record<string, string | number> = {
     page,
     perPage,
@@ -71,4 +65,23 @@ export const deleteNote = async (id: string): Promise<Note> => {
 export const fetchNoteById = async (id: string): Promise<Note> => {
   const { data } = await instance.get<Note>(`/notes/${id}`);
   return data;
+};
+
+export const fetchMe = async (): Promise<User> => {
+  const { data } = await instance.get<User>('/users/me');
+  return data;
+};
+
+export const login = async (payload: LoginPayload): Promise<User> => {
+  const { data } = await instance.post<User>('/auth/login', payload);
+  return data;
+};
+
+export const register = async (payload: RegisterPayload): Promise<User> => {
+  const { data } = await instance.post<User>('/auth/register', payload);
+  return data;
+};
+
+export const logout = async (): Promise<void> => {
+  await instance.post('/auth/logout');
 };
