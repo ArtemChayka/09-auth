@@ -1,45 +1,82 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuthStore } from '@/lib/store/authStore';
 import css from './Profile.module.css';
 
-export const metadata: Metadata = {
-  title: 'Profile | NoteHub',
-  description: 'Сторінка профілю користувача NoteHub',
-  robots: { index: false, follow: false },
-};
+export default function ProfilePage() {
+  const { user, updateUser } = useAuthStore();
+  const [username, setUsername] = useState(user?.username || '');
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-export default function Profile() {
-  const user = useAuthStore((state) => state.user);
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      await updateUser({ username });
+      router.push('/notes/filter/All');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to update username');
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    setUsername(user?.username || '');
+  };
 
   if (!user) {
-    return <p>Loading...</p>;
+    return <div>Loading...</div>;
   }
 
   return (
-    <main className={css.mainContent}>
-      <div className={css.profileCard}>
-        <div className={css.header}>
-          <h1 className={css.formTitle}>Profile Page</h1>
-          <Link href="/profile/edit" className={css.editProfileButton}>
-            Edit Profile
-          </Link>
-        </div>
+    <main className={css.main}>
+      <div className={css.profileContainer}>
+        <h1 className={css.formTitle}>Edit Profile</h1>
 
-        <div className={css.avatarWrapper}>
-          <img
-            src={user.avatar || '/default-avatar.png'}
-            alt="User Avatar"
-            width={120}
-            height={120}
-            className={css.avatar}
-          />
-        </div>
+        <Image
+          src="/avatar"
+          alt="User Avatar"
+          width={120}
+          height={120}
+          className={css.avatar}
+        />
 
-        <div className={css.profileInfo}>
-          <p>Username: {user.username || 'N/A'}</p>
+        <form className={css.profileInfo} onSubmit={handleSave}>
+          <div className={css.usernameWrapper}>
+            <label htmlFor="username">Username:</label>
+            <input
+              id="username"
+              type="text"
+              className={css.input}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
           <p>Email: {user.email}</p>
-        </div>
+
+          <div className={css.actions}>
+            <button type="submit" className={css.saveButton}>
+              Save
+            </button>
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+        {error && <p className={css.error}>{error}</p>}
       </div>
     </main>
   );

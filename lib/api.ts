@@ -1,5 +1,10 @@
 import axios from 'axios';
-import { User, LoginPayload, RegisterPayload } from '../types/users';
+import {
+  User,
+  LoginPayload,
+  RegisterPayload,
+  UpdateUserPayload,
+} from '../types/users';
 
 const instance = axios.create({
   baseURL: 'https://notehub-api.goit.study',
@@ -84,4 +89,9 @@ export const register = async (payload: RegisterPayload): Promise<User> => {
 
 export const logout = async (): Promise<void> => {
   await instance.post('/auth/logout');
+};
+
+export const updateUser = async (payload: UpdateUserPayload): Promise<User> => {
+  const { data } = await instance.patch<User>('/users/me', payload);
+  return data;
 };
