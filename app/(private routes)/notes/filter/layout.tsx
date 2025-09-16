@@ -1,18 +1,10 @@
-import css from './layout.module.css';
+// File path: app/(private routes)/notes/layout.tsx
 import React from 'react';
 
-interface NotesFilterLayoutProps {
- children: React.ReactNode,
-  sidebar: React.ReactNode,
-}
-export default function NotesFilterLayout({
+export default function NotesLayout({
   children,
-  sidebar,
-}: NotesFilterLayoutProps) {
-  return (
-    <div className={css.container}>
-      <div className={css.sidebar}>{sidebar}</div>
-      <div className={css.content}>{children}</div>
-    </div>
-  );
+}: {
+  children: React.ReactNode;
+}) {
+  return <div>{children}</div>;
 }
