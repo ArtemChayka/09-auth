@@ -21,6 +21,10 @@ export interface CreateNotePayload {
   tag: NoteTag;
 }
 
+export interface UpdateUserPayload {
+  username?: string;
+}
+
 // Функції авторизації
 export const registerUser = async (credentials: {
   email: string;
@@ -42,20 +46,33 @@ export const logoutUser = async (): Promise<void> => {
   await apiInstance.post('/auth/logout');
 };
 
-export const getCurrentUser = async (): Promise<User> => {
-  const { data } = await apiInstance.get('/auth/session');
-  return data;
+// Функція перевірки сесії
+export const checkSession = async (): Promise<User | null> => {
+  try {
+    const { data } = await apiInstance.get('/auth/session');
+    return data;
+  } catch (error) {
+    console.error('Session check failed:', error);
+    return null;
+  }
 };
 
 // Функції користувача
-export const updateUser = async (userData: Partial<User>): Promise<User> => {
+export const getCurrentUser = async (): Promise<User> => {
+  const { data } = await apiInstance.get('/users/me');
+  return data;
+};
+
+export const updateUser = async (
+  userData: UpdateUserPayload,
+): Promise<User> => {
   const { data } = await apiInstance.patch('/users/me', userData);
   return data;
 };
 
 // Функції нотаток
 export const fetchNotes = async (
-  params: FetchNotesParams,
+  params: FetchNotesParams = {},
 ): Promise<FetchNotesResponse> => {
   const { data } = await apiInstance.get('/notes', { params });
   return data;
