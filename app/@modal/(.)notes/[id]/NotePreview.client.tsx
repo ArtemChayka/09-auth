@@ -1,70 +1,71 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { fetchNoteById, Note } from '../../../../lib/api';
-import css from './NotePreview.module.css';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { fetchNoteById } from '@/lib/api/serverApi';
+import Modal from '@/components/Modal/Modal';
+import css from '@/components/NotePreview/NotePreview.module.css';
 
-interface NotePreviewProps {
+interface NotePreviewClientProps {
   noteId: string;
 }
 
-export default function NotePreview({ noteId }: NotePreviewProps) {
-  const [note, setNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function NotePreviewClient({ noteId }: NotePreviewClientProps) {
+  const router = useRouter();
 
-  useEffect(() => {
-    if (!noteId) {
-      setError('Note ID is missing.');
-      setLoading(false);
-      return;
-    }
+  const {
+    data: note,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['note', noteId],
+    queryFn: () => fetchNoteById(noteId),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-    const loadNote = async () => {
-      try {
-        setLoading(true);
-        const fetchedNote = await fetchNoteById(noteId);
-        setNote(fetchedNote);
-      } catch (err) {
-        setError('Failed to load note.');
-        console.error('Error fetching note:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleClose = () => {
+    router.back();
+  };
 
-    loadNote();
-  }, [noteId]);
-
-  if (loading) {
-    return <div className={css.message}>Завантаження нотатки...</div>;
+  if (isLoading) {
+    return (
+      <Modal onClose={handleClose}>
+        <div className={css.previewLoading}>Loading...</div>
+      </Modal>
+    );
   }
 
   if (error) {
     return (
-      <div className={css.message} style={{ color: 'red' }}>
-        Помилка: {error}
-      </div>
+      <Modal onClose={handleClose}>
+        <div className={css.previewError}>
+          Error: {error instanceof Error ? error.message : 'Unknown error'}
+        </div>
+      </Modal>
     );
   }
 
   if (!note) {
-    return <div className={css.message}>Нотатка не знайдена.</div>;
+    return (
+      <Modal onClose={handleClose}>
+        <div className={css.previewNotFound}>Note not found.</div>
+      </Modal>
+    );
   }
 
   return (
-    <div className={css.previewContainer}>
-      <h1 className={css.title}>{note.title}</h1>
-      <p className={css.content}>{note.content}</p>
-      {note.tags && note.tags.length > 0 && (
-        <div className={css.tagsContainer}>
-          {note.tags.map((tag: string) => (
-            <span key={tag} className={css.tag}>
-              #{tag}
-            </span>
-          ))}
+    <Modal onClose={handleClose}>
+      <div className={css.previewContainer}>
+        <h2 className={css.previewTitle}>{note.title}</h2>
+        <p className={css.previewContent}>{note.content}</p>
+        <div className={css.previewTags}>
+          Tag: <span className={css.previewTag}>{note.tag}</span>
         </div>
-      )}
-    </div>
+        <p className={css.date}>
+          Created: {new Date(note.createdAt).toLocaleDateString()}
+        </p>
+      </div>
+    </Modal>
   );
 }

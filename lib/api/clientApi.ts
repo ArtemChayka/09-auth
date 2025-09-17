@@ -1,5 +1,11 @@
 import { apiInstance } from './api';
 import { User } from '@/types/user';
+import { Note } from '@/types/note';
+
+export const deleteNote = async (id: string): Promise<Note> => {
+  const { data } = await apiInstance.delete(`/notes/${id}`);
+  return data;
+};
 
 export const registerUser = async (credentials: {
   email: string;
