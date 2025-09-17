@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import axios from 'axios';
 import { Note, NoteTag } from '@/types/note';
 import { User } from '@/types/user';
@@ -7,15 +6,18 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL
   ? process.env.NEXT_PUBLIC_API_URL + '/api'
   : 'https://notehub-api.goit.study';
 
-const createServerInstance = async () => {
-  const cookieStore = await cookies();
+const createServerInstance = (cookieString?: string) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (cookieString) {
+    headers.Cookie = cookieString;
+  }
 
   return axios.create({
     baseURL,
-    headers: {
-      Cookie: cookieStore.toString(),
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
 };
 
@@ -31,9 +33,11 @@ export interface FetchNotesResponse {
   totalPages: number;
 }
 
-export const getServerUser = async (): Promise<User | null> => {
+export const getServerUser = async (
+  cookieString?: string,
+): Promise<User | null> => {
   try {
-    const instance = await createServerInstance();
+    const instance = createServerInstance(cookieString);
     const { data } = await instance.get('/auth/session');
     return data;
   } catch (error) {
@@ -44,9 +48,10 @@ export const getServerUser = async (): Promise<User | null> => {
 
 export const fetchNotes = async (
   params: FetchNotesParams,
+  cookieString?: string,
 ): Promise<FetchNotesResponse> => {
   try {
-    const instance = await createServerInstance();
+    const instance = createServerInstance(cookieString);
     const { data } = await instance.get('/notes', { params });
     return data;
   } catch (error) {
@@ -55,9 +60,12 @@ export const fetchNotes = async (
   }
 };
 
-export const fetchNoteById = async (id: string): Promise<Note> => {
+export const fetchNoteById = async (
+  id: string,
+  cookieString?: string,
+): Promise<Note> => {
   try {
-    const instance = await createServerInstance();
+    const instance = createServerInstance(cookieString);
     const { data } = await instance.get(`/notes/${id}`);
     return data;
   } catch (error) {
