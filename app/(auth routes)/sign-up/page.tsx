@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
-import css from './SignUp.module.css';
+import css from './SignUp.module.css'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');

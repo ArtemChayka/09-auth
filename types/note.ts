@@ -5,6 +5,7 @@ export interface Note {
   tag: NoteTag;
   createdAt: string;
   updatedAt: string;
+  // tags: string[];
 }
 
 export type NoteTag = 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';

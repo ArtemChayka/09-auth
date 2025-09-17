@@ -1,70 +1,62 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { fetchNoteById, Note } from '../../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { fetchNoteById } from '@/lib/api/serverApi';
+import Modal from '@/components/Modal/Modal';
 import css from './NotePreview.module.css';
 
-interface NotePreviewProps {
-  noteId: string;
-}
+export default function NotePreview({ noteId }: { noteId: string }) {
+  const router = useRouter();
 
-export default function NotePreview({ noteId }: NotePreviewProps) {
-  const [note, setNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: note,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['note', noteId],
+    queryFn: () => fetchNoteById(noteId),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    if (!noteId) {
-      setError('Note ID is missing.');
-      setLoading(false);
-      return;
-    }
+  const handleClose = () => {
+    router.back();
+  };
 
-    const loadNote = async () => {
-      try {
-        setLoading(true);
-        const fetchedNote = await fetchNoteById(noteId);
-        setNote(fetchedNote);
-      } catch (err) {
-        setError('Failed to load note.');
-        console.error('Error fetching note:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadNote();
-  }, [noteId]);
-
-  if (loading) {
-    return <div className={css.message}>Loading note...</div>;
-  }
-
-  if (error) {
+  if (isLoading) {
     return (
-      <div className={css.message} style={{ color: 'red' }}>
-        {error}
-      </div>
+      <Modal onClose={handleClose}>
+        <p>Loading, please wait...</p>
+      </Modal>
     );
   }
 
-  if (!note) {
-    return <div className={css.message}>Note not found.</div>;
+  if (error || !note) {
+    return (
+      <Modal onClose={handleClose}>
+        <p>Something went wrong. Could not fetch note details.</p>
+      </Modal>
+    );
   }
 
   return (
-    <div className={css.previewContainer}>
-      <h1 className={css.title}>{note.title}</h1>
-      <p className={css.content}>{note.content}</p>
-      {note.tags && note.tags.length > 0 && (
-        <div className={css.tagsContainer}>
-          {note.tags.map((tag: string) => (
-            <span key={tag} className={css.tag}>
-              #{tag}
-            </span>
-          ))}
+    <Modal onClose={handleClose}>
+      <div className={css.container}>
+        <div className={css.item}>
+          <div className={css.header}>
+            <h2>{note.title}</h2>
+            <span className={css.tag}>{note.tag}</span>
+          </div>
+          <p className={css.content}>{note.content}</p>
+          <p className={css.date}>
+            Created: {new Date(note.createdAt).toLocaleDateString()}
+          </p>
+          <button className={css.backBtn} onClick={handleClose}>
+            ← Back
+          </button>
         </div>
-      )}
-    </div>
+      </div>
+    </Modal>
   );
 }

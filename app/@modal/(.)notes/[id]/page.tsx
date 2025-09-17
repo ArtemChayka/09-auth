@@ -3,7 +3,7 @@
 import Modal from '@/components/Modal/Modal';
 import NotePreview from '@/components/NotePreview/NotePreview';
 import { notFound } from 'next/navigation';
-import css from './page.module.css';
+import css from '@/app/page.module.css';
 import { useRouter } from 'next/navigation';
 
 interface NotePageProps {

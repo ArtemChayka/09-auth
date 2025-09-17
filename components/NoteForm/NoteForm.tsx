@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNoteStore } from '@/lib/store/noteStore';
-import { createNote } from '@/lib/api';
+import { createNote } from '@/lib/api/clientApi';
 import { NoteTag } from '@/types/note';
 import css from './NoteForm.module.css';
 
@@ -20,7 +20,6 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
   const [formData, setFormData] = useState(draft);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Синхронізуємо локальний стан з draft зі store
   useEffect(() => {
     setFormData(draft);
   }, [draft]);
@@ -66,7 +65,6 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
     setFormData(updatedData);
     setDraft(updatedData);
 
-    // Очищуємо помилку для цього поля
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
