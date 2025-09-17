@@ -1,4 +1,3 @@
-// File path: app/(private routes)/notes/layout.tsx
 import React from 'react';
 
 export default function NotesLayout({

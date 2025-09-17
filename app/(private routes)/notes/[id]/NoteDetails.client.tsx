@@ -1,69 +1,51 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { fetchNoteById, Note } from '../../../../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { fetchNoteById } from '../../../../lib/api/serverApi';
 import css from './NoteDetails.module.css';
 
-interface NoteDetailsProps {
-  params: {
-    id: string;
-  };
+interface NoteDetailsClientProps {
+  noteId: string;
 }
 
-export default function NoteDetails({ params }: NoteDetailsProps) {
-  const noteId = params.id;
-  const [note, setNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function NoteDetailsClient({ noteId }: NoteDetailsClientProps) {
+  const router = useRouter();
 
-  useEffect(() => {
-    const loadNote = async () => {
-      try {
-        setLoading(true);
-        const fetchedNote = await fetchNoteById(noteId);
-        setNote(fetchedNote);
-      } catch (err) {
-        setError('Failed to load note.');
-        console.error('Error fetching note:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const {
+    data: note,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['note', noteId],
+    queryFn: () => fetchNoteById(noteId),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-    if (noteId) {
-      loadNote();
-    }
-  }, [noteId]);
-
-  if (loading) {
-    return <div className={css.message}>Завантаження...</div>;
+  if (isLoading) {
+    return <p>Loading, please wait...</p>;
   }
 
-  if (error) {
-    return (
-      <div className={css.message} style={{ color: 'red' }}>
-        Помилка: {error}
-      </div>
-    );
-  }
-
-  if (!note) {
-    return <div className={css.message}>Примітка не знайдена.</div>;
+  if (error || !note) {
+    return <p>Something went wrong. Could not fetch note details.</p>;
   }
 
   return (
-    <div className={css.noteDetailsContainer}>
-      <h1 className={css.title}>{note.title}</h1>
-      <p className={css.content}>{note.content}</p>
-      {note.tags && note.tags.length > 0 && (
-        <div className={css.tagsContainer}>
-          {note.tags.map((tag) => (
-            <span key={tag} className={css.tag}>
-              #{tag}
-            </span>
-          ))}
+    <div className={css.container}>
+      <div className={css.item}>
+        <div className={css.header}>
+          <h2>{note.title}</h2>
+          <span className={css.tag}>{note.tag}</span>
         </div>
-      )}
+        <p className={css.content}>{note.content}</p>
+        <p className={css.date}>
+          Created: {new Date(note.createdAt).toLocaleDateString()}
+        </p>
+        <button className={css.backBtn} onClick={() => router.back()}>
+          ← Back to notes
+        </button>
+      </div>
     </div>
   );
 }
