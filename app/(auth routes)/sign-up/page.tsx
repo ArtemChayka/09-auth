@@ -5,15 +5,27 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
-import css from './SignUp.module.css'
+import css from './SignUp.module.css';
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Очищуємо помилку при введенні
+    if (error) setError(null);
+  };
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,7 +33,13 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      const user = await registerUser({ email, password });
+      // Використовуємо registerUser API функцію напряму
+      const user = await registerUser({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Після успішної реєстрації зберігаємо користувача в store
       setUser(user);
       router.push('/profile');
     } catch (err: unknown) {
@@ -51,8 +69,8 @@ export default function SignUpPage() {
             type="email"
             name="email"
             className={css.input}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleInputChange}
             disabled={isLoading}
             required
           />
@@ -65,8 +83,8 @@ export default function SignUpPage() {
             type="password"
             name="password"
             className={css.input}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleInputChange}
             disabled={isLoading}
             required
           />
@@ -76,7 +94,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             className={css.submitButton}
-            disabled={isLoading || !email || !password}
+            disabled={isLoading || !formData.email || !formData.password}
           >
             {isLoading ? 'Registering...' : 'Register'}
           </button>

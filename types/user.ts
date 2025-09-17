@@ -1,8 +1,10 @@
 export interface User {
   id: string;
-  username: string;
   email: string;
-  avatar?: string;
+  username: string;
+  avatar: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginPayload {
@@ -11,7 +13,6 @@ export interface LoginPayload {
 }
 
 export interface RegisterPayload {
-  username: string;
   email: string;
   password: string;
 }

@@ -8,12 +8,24 @@ import { useAuthStore } from '@/lib/store/authStore';
 import css from './SignIn.module.css';
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Очищуємо помилку при введенні
+    if (error) setError(null);
+  };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,7 +33,13 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      const user = await loginUser({ email, password });
+      // Використовуємо loginUser API функцію напряму
+      const user = await loginUser({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Після успішного логіну зберігаємо користувача в store
       setUser(user);
       router.push('/profile');
     } catch (err: unknown) {
@@ -52,8 +70,8 @@ export default function SignInPage() {
             type="email"
             name="email"
             className={css.input}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleInputChange}
             disabled={isLoading}
             required
           />
@@ -66,8 +84,8 @@ export default function SignInPage() {
             type="password"
             name="password"
             className={css.input}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleInputChange}
             disabled={isLoading}
             required
           />
@@ -77,7 +95,7 @@ export default function SignInPage() {
           <button
             type="submit"
             className={css.submitButton}
-            disabled={isLoading || !email || !password}
+            disabled={isLoading || !formData.email || !formData.password}
           >
             {isLoading ? 'Signing in...' : 'Log in'}
           </button>
@@ -87,7 +105,7 @@ export default function SignInPage() {
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-        Dont have an account?{' '}
+        Do not have an account?{' '}
         <Link href="/sign-up" style={{ color: '#007bff' }}>
           Sign up
         </Link>

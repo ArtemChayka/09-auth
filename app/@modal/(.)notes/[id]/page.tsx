@@ -1,27 +1,40 @@
-'use client';
-
-import Modal from '@/components/Modal/Modal';
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from '@tanstack/react-query';
+import { fetchNoteById } from '@/lib/api/serverApi';
+import { cookies } from 'next/headers';
 import NotePreview from '@/components/NotePreview/NotePreview';
 import { notFound } from 'next/navigation';
-import css from '@/app/page.module.css';
-import { useRouter } from 'next/navigation';
 
 interface NotePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function NotePage({ params }: NotePageProps) {
-  const router = useRouter();
+export default async function NotePage({ params }: NotePageProps) {
+  const { id } = await params;
 
-  if (!params.id) {
+  if (!id) {
+    notFound();
+  }
+
+  const queryClient = new QueryClient();
+  const cookieStore = await cookies();
+
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: ['note', id],
+      queryFn: () => fetchNoteById(id, cookieStore.toString()),
+    });
+  } catch (error) {
+    console.error('Error prefetching note:', error);
     notFound();
   }
 
   return (
-    <Modal onClose={() => router.back()}>
-      <div className={css.container}>
-        <NotePreview noteId={params.id} />
-      </div>
-    </Modal>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NotePreview noteId={id} />
+    </HydrationBoundary>
   );
 }

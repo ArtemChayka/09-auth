@@ -1,15 +1,26 @@
-'use client';
-
+import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/authStore';
+import { cookies } from 'next/headers';
+import { getServerUser } from '@/lib/api/serverApi';
+import { redirect } from 'next/navigation';
 import css from './Profile.module.css';
 
-export default function ProfilePage() {
-  const user = useAuthStore((state) => state.user);
+export const metadata: Metadata = {
+  title: 'Profile - NoteHub',
+  description: 'View your NoteHub profile information',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default async function ProfilePage() {
+  const cookieStore = await cookies();
+  const user = await getServerUser(cookieStore.toString());
 
   if (!user) {
-    return <div>Loading...</div>;
+    redirect('/sign-in');
   }
 
   return (
@@ -33,7 +44,7 @@ export default function ProfilePage() {
         </div>
 
         <div className={css.profileInfo}>
-          <p>Username: {user.username || 'your_username'}</p>
+          <p>Username: {user.username}</p>
           <p>Email: {user.email}</p>
         </div>
       </div>
