@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import axios, { AxiosResponse } from 'axios';
 import { Note, NoteTag } from '@/types/note';
 import { User } from '@/types/user';
@@ -8,16 +7,19 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL
   ? process.env.NEXT_PUBLIC_API_URL + '/api'
   : 'https://notehub-api.goit.study';
 
-// Створення серверного axios instance з cookies
-const createServerInstance = async () => {
-  const cookieStore = await cookies();
+// Створення серверного axios instance з cookies string
+const createServerInstance = (cookieString?: string) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (cookieString) {
+    headers.Cookie = cookieString;
+  }
 
   return axios.create({
     baseURL,
-    headers: {
-      Cookie: cookieStore.toString(),
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
 };
 
@@ -35,14 +37,18 @@ export interface FetchNotesResponse {
 }
 
 // Функції автентифікації та користувача
-export const checkSession = async (): Promise<AxiosResponse<User>> => {
-  const instance = await createServerInstance();
+export const checkSession = async (
+  cookieString?: string,
+): Promise<AxiosResponse<User>> => {
+  const instance = createServerInstance(cookieString);
   return await instance.get('/auth/session');
 };
 
-export const getServerUser = async (): Promise<User | null> => {
+export const getServerUser = async (
+  cookieString?: string,
+): Promise<User | null> => {
   try {
-    const instance = await createServerInstance();
+    const instance = createServerInstance(cookieString);
     const { data } = await instance.get('/users/me');
     return data;
   } catch (error) {
