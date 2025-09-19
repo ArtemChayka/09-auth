@@ -21,11 +21,12 @@ export default async function NotePage({ params }: NotePageProps) {
 
   const queryClient = new QueryClient();
   const cookieStore = await cookies();
+  const cookieString = cookieStore.toString();
 
   try {
     await queryClient.prefetchQuery({
       queryKey: ['note', id],
-      queryFn: () => fetchNoteById(id, cookieStore.toString()),
+      queryFn: () => fetchNoteById(id, cookieString),
     });
   } catch (error) {
     console.error('Error prefetching note:', error);
