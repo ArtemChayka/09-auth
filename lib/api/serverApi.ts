@@ -60,20 +60,24 @@ export const getServerUser = async (
 // Функції нотаток
 export const fetchNotes = async (
   params: FetchNotesParams = {},
+  cookieString?: string,
 ): Promise<FetchNotesResponse> => {
-  const instance = await createServerInstance();
+  const instance = createServerInstance(cookieString);
   const { data } = await instance.get('/notes', { params });
   return data;
 };
 
-export const fetchNoteById = async (id: string): Promise<Note> => {
-  const instance = await createServerInstance();
+export const fetchNoteById = async (
+  id: string,
+  cookieString?: string,
+): Promise<Note> => {
+  const instance = createServerInstance(cookieString);
   const { data } = await instance.get(`/notes/${id}`);
   return data;
 };
 
 // Допоміжна функція для отримання всіх нотаток
-export const fetchAllNotes = async (): Promise<Note[]> => {
-  const response = await fetchNotes({ perPage: 1000 });
+export const fetchAllNotes = async (cookieString?: string): Promise<Note[]> => {
+  const response = await fetchNotes({ perPage: 1000 }, cookieString);
   return response.notes;
 };
