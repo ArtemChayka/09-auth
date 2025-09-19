@@ -30,7 +30,8 @@ export default function EditProfile() {
       const updatedUser = await updateUser({ username });
       setUser(updatedUser);
       router.push('/profile');
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error('Помилка при оновленні профілю:', err);
       setError('Помилка при оновленні профілю');
     } finally {
       setSaving(false);
