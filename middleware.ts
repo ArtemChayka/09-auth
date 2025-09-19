@@ -2,8 +2,33 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-// Функція для перевірки сесії (імітація виклику API)
-async function checkSession(cookieString: string): Promise<boolean> {
+// Функція для парсингу Set-Cookie заголовків
+function parseCookieHeader(
+  setCookieHeader: string,
+): { name: string; value: string; options: Record<string, unknown> } | null {
+  const parts = setCookieHeader.split(';');
+  const [nameValue] = parts;
+  const [name, value] = nameValue.split('=');
+
+  if (!name || !value) return null;
+
+  const options: Record<string, unknown> = {};
+  parts.slice(1).forEach((part) => {
+    const [key, val] = part.trim().split('=');
+    if (key.toLowerCase() === 'httponly') options.httpOnly = true;
+    if (key.toLowerCase() === 'secure') options.secure = true;
+    if (key.toLowerCase() === 'samesite') options.sameSite = val;
+    if (key.toLowerCase() === 'path') options.path = val;
+    if (key.toLowerCase() === 'max-age') options.maxAge = parseInt(val);
+  });
+
+  return { name: name.trim(), value: value.trim(), options };
+}
+
+// Функція для перевірки сесії з обробкою оновлення токенів
+async function checkSessionWithRefresh(
+  cookieString: string,
+): Promise<{ isValid: boolean; response?: NextResponse }> {
   try {
     const baseURL = process.env.NEXT_PUBLIC_API_URL
       ? process.env.NEXT_PUBLIC_API_URL + '/api'
@@ -17,10 +42,35 @@ async function checkSession(cookieString: string): Promise<boolean> {
       },
     });
 
-    return response.ok && response.status === 200;
+    if (response.ok && response.status === 200) {
+      // Перевіряємо чи є нові токени в заголовках відповіді
+      const setCookieHeaders = response.headers.getSetCookie();
+
+      if (setCookieHeaders && setCookieHeaders.length > 0) {
+        // Створюємо NextResponse з новими cookies
+        const nextResponse = NextResponse.next();
+
+        setCookieHeaders.forEach((cookieHeader) => {
+          const parsedCookie = parseCookieHeader(cookieHeader);
+          if (parsedCookie) {
+            nextResponse.cookies.set(
+              parsedCookie.name,
+              parsedCookie.value,
+              parsedCookie.options,
+            );
+          }
+        });
+
+        return { isValid: true, response: nextResponse };
+      }
+
+      return { isValid: true };
+    }
+
+    return { isValid: false };
   } catch (error) {
     console.error('Session check failed:', error);
-    return false;
+    return { isValid: false };
   }
 }
 
@@ -38,10 +88,7 @@ export async function middleware(request: NextRequest) {
   const isPrivateRoute =
     pathname.startsWith('/notes') || pathname.startsWith('/profile');
   const isApiRoute = pathname.startsWith('/api');
-  const isPublicRoute =
-    pathname === '/' ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon');
+  const isPublicRoute = pathname === '/';
 
   // Пропускаємо API маршрути та публічні ресурси
   if (isApiRoute || isPublicRoute) {
@@ -50,6 +97,7 @@ export async function middleware(request: NextRequest) {
 
   // Логіка аутентифікації
   let isAuthenticated = false;
+  let refreshResponse: NextResponse | undefined;
 
   if (accessToken) {
     // Є accessToken - користувач автентифікований
@@ -57,7 +105,10 @@ export async function middleware(request: NextRequest) {
   } else if (refreshToken) {
     // Немає accessToken, але є refreshToken - перевіряємо сесію
     const cookieString = cookieStore.toString();
-    isAuthenticated = await checkSession(cookieString);
+    const sessionResult = await checkSessionWithRefresh(cookieString);
+
+    isAuthenticated = sessionResult.isValid;
+    refreshResponse = sessionResult.response;
 
     if (!isAuthenticated) {
       // Якщо сесія недійсна, очищаємо refreshToken
@@ -71,29 +122,29 @@ export async function middleware(request: NextRequest) {
   // Якщо користувач не авторизований і намагається зайти на приватну сторінку
   if (isPrivateRoute && !isAuthenticated) {
     const signInUrl = new URL('/sign-in', request.url);
-    // Зберігаємо URL, на який користувач хотів перейти
     signInUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(signInUrl);
   }
 
   // Якщо користувач авторизований і намагається зайти на сторінки auth
   if (isAuthRoute && isAuthenticated) {
-    // Перенаправляємо на домашню сторінку замість /profile
-    return NextResponse.redirect(new URL('/', request.url));
+    const homeUrl = new URL('/', request.url);
+    // Якщо були оновлені cookies, додаємо їх до відповіді
+    if (refreshResponse) {
+      const redirectResponse = NextResponse.redirect(homeUrl);
+      // Копіюємо оновлені cookies
+      refreshResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return redirectResponse;
+    }
+    return NextResponse.redirect(homeUrl);
   }
 
-  return NextResponse.next();
+  // Повертаємо відповідь з оновленими cookies якщо вони є
+  return refreshResponse || NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    // Приватні маршрути
-    '/notes/:path*',
-    '/profile/:path*',
-    // Auth маршрути
-    '/sign-in',
-    '/sign-up',
-    // Виключаємо статичні файли та API
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/notes/:path*', '/profile/:path*', '/sign-in', '/sign-up'],
 };
