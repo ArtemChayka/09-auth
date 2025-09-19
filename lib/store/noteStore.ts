@@ -36,7 +36,7 @@ export const useNoteStore = create<NoteStore>()(
         })),
     }),
     {
-      name: 'notehub-draft', // localStorage key
+      name: 'notehub-draft', 
       partialize: (state) => ({ draft: state.draft }),
     },
   ),

@@ -23,7 +23,6 @@ export default function SignUpPage() {
       ...prev,
       [name]: value,
     }));
-    // Очищуємо помилку при введенні
     if (error) setError(null);
   };
 
@@ -33,13 +32,11 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      // Використовуємо registerUser API функцію напряму
       const user = await registerUser({
         email: formData.email,
         password: formData.password,
       });
 
-      // Після успішної реєстрації зберігаємо користувача в store
       setUser(user);
       router.push('/profile');
     } catch (err: unknown) {

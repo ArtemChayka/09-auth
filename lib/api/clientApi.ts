@@ -57,7 +57,6 @@ export const checkSession = async (): Promise<User | null> => {
   }
 };
 
-// Функції користувача
 export const getCurrentUser = async (): Promise<User> => {
   const { data } = await apiInstance.get('/users/me');
   return data;
@@ -70,7 +69,6 @@ export const updateUser = async (
   return data;
 };
 
-// Функції нотаток
 export const fetchNotes = async (
   params: FetchNotesParams = {},
 ): Promise<FetchNotesResponse> => {

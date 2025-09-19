@@ -23,7 +23,6 @@ export default function SignInPage() {
       ...prev,
       [name]: value,
     }));
-    // Очищуємо помилку при введенні
     if (error) setError(null);
   };
 
@@ -33,13 +32,11 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      // Використовуємо loginUser API функцію напряму
       const user = await loginUser({
         email: formData.email,
         password: formData.password,
       });
 
-      // Після успішного логіну зберігаємо користувача в store
       setUser(user);
       router.push('/profile');
     } catch (err: unknown) {

@@ -15,16 +15,13 @@ export default function AuthProvider({
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Спочатку перевіряємо сесію
         const sessionUser = await checkSession();
 
         if (sessionUser) {
-          // Якщо сесія валідна, отримуємо повні дані користувача
           try {
             const fullUser = await getCurrentUser();
             setUser(fullUser);
           } catch (userError) {
-            // Якщо не можемо отримати повні дані, використовуємо дані з сесії
             console.warn(
               'Failed to get full user data, using session data:',
               userError,
@@ -32,11 +29,9 @@ export default function AuthProvider({
             setUser(sessionUser);
           }
         } else {
-          // Сесія недійсна, очищуємо стан
           clearUser();
         }
       } catch (sessionError) {
-        // Помилка перевірки сесії - користувач неавторизований
         console.warn('Session check failed:', sessionError);
         clearUser();
       } finally {

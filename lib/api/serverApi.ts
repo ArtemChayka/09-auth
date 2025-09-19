@@ -2,12 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import { Note, NoteTag } from '@/types/note';
 import { User } from '@/types/user';
 
-// Базовий URL для серверних запитів
 const baseURL = process.env.NEXT_PUBLIC_API_URL
   ? process.env.NEXT_PUBLIC_API_URL + '/api'
   : 'https://notehub-api.goit.study';
 
-// Створення серверного axios instance з cookies string
 const createServerInstance = (cookieString?: string) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -23,7 +21,6 @@ const createServerInstance = (cookieString?: string) => {
   });
 };
 
-// Інтерфейси
 export interface FetchNotesParams {
   page?: number;
   perPage?: number;
@@ -36,7 +33,6 @@ export interface FetchNotesResponse {
   totalPages: number;
 }
 
-// Функції автентифікації та користувача
 export const checkSession = async (
   cookieString?: string,
 ): Promise<AxiosResponse<User>> => {
@@ -57,7 +53,6 @@ export const getServerUser = async (
   }
 };
 
-// Функції нотаток
 export const fetchNotes = async (
   params: FetchNotesParams = {},
   cookieString?: string,
@@ -76,7 +71,6 @@ export const fetchNoteById = async (
   return data;
 };
 
-// Допоміжна функція для отримання всіх нотаток
 export const fetchAllNotes = async (cookieString?: string): Promise<Note[]> => {
   const response = await fetchNotes({ perPage: 1000 }, cookieString);
   return response.notes;

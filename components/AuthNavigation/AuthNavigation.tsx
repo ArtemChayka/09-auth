@@ -17,7 +17,6 @@ export default function AuthNavigation() {
       router.push('/sign-in');
     } catch (error) {
       console.error('Logout failed:', error);
-      // Все одно очищуємо локальний стан при помилці
       clearUser();
       router.push('/sign-in');
     }
